@@ -1,2 +1,7 @@
 # Project exclude paths
 /.bloop/
+/.idea/
+/out/
+/target/
+/project/project/
+/project/target/
