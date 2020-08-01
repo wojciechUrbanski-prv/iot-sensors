@@ -1,3 +1,8 @@
+package wojciech.urbanski.sensordata
+
+import wojciech.urbanski.humidity.{AverageHumidityBigDecimalValue, AverageHumidityValue, AverageNaN, HumidityLongValue, HumidityValue, NaN}
+import wojciech.urbanski.measurements.Measurements
+
 case class CompoundSensorData(minVal: HumidityValue, avgVal: AverageHumidityValue, maxVal: HumidityValue, successfulMeasurements: Measurements) {
 
   def addNewHumidityValue(humidityValue: HumidityValue): CompoundSensorData = humidityValue match {

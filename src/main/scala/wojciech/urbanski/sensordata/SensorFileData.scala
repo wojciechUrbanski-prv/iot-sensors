@@ -1,3 +1,7 @@
+package wojciech.urbanski.sensordata
+
+import wojciech.urbanski.humidity.{HumidityLongValue, HumidityValue, NaN}
+
 final case class SensorFileData private (sensorId: SensorId, humidity: HumidityValue)
 
 object SensorFileData {

@@ -1,3 +1,5 @@
+package wojciech.urbanski.humidity
+
 import cats.Show
 
 import scala.math.BigDecimal.RoundingMode

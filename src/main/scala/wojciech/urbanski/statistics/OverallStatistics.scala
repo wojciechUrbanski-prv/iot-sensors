@@ -1,4 +1,9 @@
+package wojciech.urbanski.statistics
+
 import cats.Show
+import wojciech.urbanski.humidity.{AverageHumidityValue, HumidityValue, NaN}
+import wojciech.urbanski.measurements.Measurements
+import wojciech.urbanski.sensordata.{CompoundSensorData, NaNValueFromSensor, NewValueFromSensor, SensorData, SensorId}
 
 case class OverallStatistics(processedFiles: Set[String], processedMeasurements: Measurements, failedMeasurements: Measurements, sensorsData: Map[SensorId, CompoundSensorData]) {
 

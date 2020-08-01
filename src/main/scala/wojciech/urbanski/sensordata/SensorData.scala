@@ -1,3 +1,7 @@
+package wojciech.urbanski.sensordata
+
+import wojciech.urbanski.humidity.{HumidityLongValue, NaN}
+
 sealed trait SensorData
 case class NewValueFromSensor(sensorId: SensorId, humidityValue: HumidityLongValue) extends SensorData
 case class NaNValueFromSensor(sensorId: SensorId) extends SensorData

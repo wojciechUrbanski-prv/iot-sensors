@@ -1,9 +1,13 @@
+package wojciech.urbanski
+
 import java.io.File
 import java.nio.file.{Path, Paths}
 
 import cats.Show
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import fs2.{Stream, io, text}
+import wojciech.urbanski.sensordata.{SensorData, SensorFileData}
+import wojciech.urbanski.statistics.OverallStatistics
 
 object Converter extends IOApp {
 

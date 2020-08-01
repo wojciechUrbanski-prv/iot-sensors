@@ -1,3 +1,5 @@
+package wojciech.urbanski.measurements
+
 case class Measurements(value: Long) extends AnyVal {
   def inc(): Measurements = Measurements(value + 1)
   def add(secondMeasurements: Measurements): Measurements = Measurements(value + secondMeasurements.value)
