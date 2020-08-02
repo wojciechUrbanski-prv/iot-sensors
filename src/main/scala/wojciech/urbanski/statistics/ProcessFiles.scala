@@ -22,7 +22,7 @@ class ProcessFiles[F[_]: ContextShift: Sync: Monad] {
 
   def readFromFilesAndGatherStatistics(path: Path): F[OverallStatistics] = {
     for {
-      files <- Sync[F].delay(new File(path.toString).listFiles().filter(_.isFile).filter(_.getName.endsWith(".csv")).map(file => Paths.get(file.getPath)).toList)
+      files <- Sync[F].delay(new File(path.toString).listFiles().filter(_.isFile).filter(_.getName.endsWith(".csv")).filter(_.getName != "celsius.csv").map(file => Paths.get(file.getPath)).toList)
       res <- if (files.isEmpty) Logger[F].info("Could not find any .csv files in provided location") *> Monad[F].point(OverallStatistics.empty)
              else readFiles(files).compile.fold(OverallStatistics.empty)(gatherData)
     } yield res
@@ -45,7 +45,7 @@ class ProcessFiles[F[_]: ContextShift: Sync: Monad] {
                      .through(text.lines)
                      .zipWithIndex
                      .onEach(1000, index => Logger[F].debug(s"Processed $index elements from $filePath"))
-                     .onFinalize(Logger[F].info(s"Successfully processed $filePath"))
+                     .onFinalize(Logger[F].info(s"Processed $filePath"))
         } yield (fileToSensorsData(lines), filePath)
       })
   }
