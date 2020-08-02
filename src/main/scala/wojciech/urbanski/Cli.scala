@@ -7,6 +7,7 @@ import cats.Show
 import cats.effect.{ExitCode, IO}
 import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import wojciech.urbanski.statistics.{OverallStatistics, ProcessFile}
 
 object Cli
@@ -19,8 +20,11 @@ object Cli
   override def main: Opts[IO[ExitCode]] = {
     pathParam.map { path =>
       for {
-        files <- IO(new File(path.toString).listFiles().filter(_.isFile).filter(_.getName.endsWith(".csv")).map(file => Paths.get(file.getPath)).toList)
-        _     <- new ProcessFile[IO]().readFromFilesAndGatherStatistics(files).flatMap(r => IO(println(Show[OverallStatistics].show(r))))
+        logger <- Slf4jLogger.create[IO]
+        files  <- IO(new File(path.toString).listFiles().filter(_.isFile).filter(_.getName.endsWith(".csv")).map(file => Paths.get(file.getPath)).toList)
+        _ <- new ProcessFile[IO]()
+               .readFromFilesAndGatherStatistics(files)
+               .flatMap(r => logger.info("\n" + Show[OverallStatistics].show(r)))
       } yield ExitCode.Success
     }
   }

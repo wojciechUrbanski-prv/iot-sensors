@@ -12,6 +12,10 @@ libraryDependencies += "com.monovore"   %% "decline"        % "1.0.0"
 libraryDependencies += "com.monovore"   %% "decline-effect" % "1.0.0"
 libraryDependencies += "org.scalatest"  %% "scalatest"      % "3.1.1"  % "test"
 libraryDependencies += "org.scalacheck" %% "scalacheck"     % "1.14.1" % "test"
+libraryDependencies ++= Seq(
+  "ch.qos.logback"     % "logback-classic" % "1.2.3",
+  "io.chrisdavenport" %% "log4cats-slf4j"  % "1.1.1"
+)
 
 val commonScalacOptions = Seq(
   "-deprecation",                              // Emit warning and location for usages of deprecated APIs.
