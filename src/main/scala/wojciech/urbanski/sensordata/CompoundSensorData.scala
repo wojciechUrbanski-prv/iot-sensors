@@ -1,29 +1,29 @@
 package wojciech.urbanski.sensordata
 
-import wojciech.urbanski.humidity.{AverageHumidityBigDecimalValue, AverageHumidityValue, AverageNaN, HumidityLongValue, HumidityValue, NaN}
+import wojciech.urbanski.humidity.{AverageHumidityBigDecimalValue, AverageHumidityValue, AverageNaN, HumidityIntValue, HumidityValue, HumidityNaN}
 import wojciech.urbanski.measurements.Measurements
 
 case class CompoundSensorData(minVal: HumidityValue, avgVal: AverageHumidityValue, maxVal: HumidityValue, successfulMeasurements: Measurements) {
 
   def addNewHumidityValue(humidityValue: HumidityValue): CompoundSensorData =
     humidityValue match {
-      case humidity @ HumidityLongValue(_) =>
+      case humidity @ HumidityIntValue(_) =>
         CompoundSensorData(
-          minVal = findValue(humidity, minVal, Ordering[Long].min),
+          minVal = findValue(humidity, minVal, Ordering[Int].min),
           avgVal = calculateAverage(humidity, avgVal, successfulMeasurements),
-          maxVal = findValue(humidity, maxVal, Ordering[Long].max),
+          maxVal = findValue(humidity, maxVal, Ordering[Int].max),
           successfulMeasurements = successfulMeasurements.inc()
         )
-      case NaN => this
+      case HumidityNaN => this
     }
 
-  private def findValue(newHumidityValue: HumidityLongValue, currentValue: HumidityValue, findBy: (Long, Long) => Long) =
+  private def findValue(newHumidityValue: HumidityIntValue, currentValue: HumidityValue, findBy: (Int, Int) => Int) =
     currentValue match {
-      case HumidityLongValue(value) => HumidityLongValue(findBy(value, newHumidityValue.value))
-      case NaN                      => newHumidityValue
+      case HumidityIntValue(value) => HumidityIntValue(findBy(value, newHumidityValue.value))
+      case HumidityNaN                      => newHumidityValue
     }
 
-  private def calculateAverage(newHumidityValue: HumidityLongValue, currentAvg: AverageHumidityValue, successfullMeasurements: Measurements) =
+  private def calculateAverage(newHumidityValue: HumidityIntValue, currentAvg: AverageHumidityValue, successfullMeasurements: Measurements) =
     currentAvg match {
       case AverageHumidityBigDecimalValue(value) =>
         AverageHumidityBigDecimalValue((value * successfullMeasurements.value + newHumidityValue.value) / successfullMeasurements.inc().value)
@@ -34,5 +34,5 @@ case class CompoundSensorData(minVal: HumidityValue, avgVal: AverageHumidityValu
 }
 
 object CompoundSensorData {
-  val empty: CompoundSensorData = CompoundSensorData(NaN, AverageNaN, NaN, Measurements.zero)
+  val empty: CompoundSensorData = CompoundSensorData(HumidityNaN, AverageNaN, HumidityNaN, Measurements.zero)
 }

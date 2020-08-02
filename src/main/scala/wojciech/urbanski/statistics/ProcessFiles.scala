@@ -1,31 +1,39 @@
 package wojciech.urbanski.statistics
 
-import java.nio.file.Path
+import java.io.File
+import java.nio.file.{Path, Paths}
 
 import cats.Monad
 import cats.effect.{Blocker, ContextShift, Resource, Sync}
 import cats.syntax.apply._
+import cats.syntax.flatMap._
+import cats.syntax.functor._
 import fs2.io.file
-import fs2.{text, Stream}
+import fs2.{Stream, text}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.chrisdavenport.log4cats.{Logger, SelfAwareStructuredLogger}
 import wojciech.urbanski.sensordata.{SensorData, SensorFileData}
 
-class ProcessFile[F[_]: ContextShift: Sync: Monad] {
+class ProcessFiles[F[_]: ContextShift: Sync: Monad] {
 
   private val ioBlocker: Resource[F, Blocker] = Blocker[F]
 
   implicit val unsafeLogger: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
 
-  def readFromFilesAndGatherStatistics(files: List[Path]): F[OverallStatistics] = {
-    readFiles(files).compile.fold(OverallStatistics.empty)(gatherData)
+  def readFromFilesAndGatherStatistics(path: Path): F[OverallStatistics] = {
+    for {
+      files <- Sync[F].delay(new File(path.toString).listFiles().filter(_.isFile).filter(_.getName.endsWith(".csv")).map(file => Paths.get(file.getPath)).toList)
+      res <- if (files.isEmpty) Logger[F].info("Could not find any .csv files in provided location") *> Monad[F].point(OverallStatistics.empty)
+             else readFiles(files).compile.fold(OverallStatistics.empty)(gatherData)
+    } yield res
+
   }
 
-  private def fileToSensorsData(line: String): Option[SensorData] = {
+  private def fileToSensorsData(line: String): SensorData = {
     SensorData.fromFileData(SensorFileData(line))
   }
 
-  private def readFiles(filesPaths: List[Path]): Stream[F, (Option[SensorData], Path)] = {
+  private def readFiles(filesPaths: List[Path]): Stream[F, (SensorData, Path)] = {
     Stream
       .resource(ioBlocker)
       .flatMap(blocker => {
@@ -42,11 +50,8 @@ class ProcessFile[F[_]: ContextShift: Sync: Monad] {
       })
   }
 
-  private def gatherData(acc: OverallStatistics, maybeDataWithPath: (Option[SensorData], Path)) =
-    maybeDataWithPath match {
-      case (Some(sensorData), path) => acc.addNewSensorData(path.toString, sensorData)
-      case (None, path)             => acc.updateFiles(path.toString)
-    }
+  private def gatherData(acc: OverallStatistics, dataWithPath: (SensorData, Path)) =
+      acc.addNewSensorData(dataWithPath._2, dataWithPath._1)
 
   implicit class StreamWithIndexOps[O](stream: Stream[F, (O, Long)]) {
 

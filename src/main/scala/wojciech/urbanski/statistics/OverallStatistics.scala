@@ -1,9 +1,11 @@
 package wojciech.urbanski.statistics
 
+import java.nio.file.Path
+
 import cats.Show
-import wojciech.urbanski.humidity.{AverageHumidityValue, HumidityValue, NaN}
+import wojciech.urbanski.humidity.{AverageHumidityValue, HumidityNaN, HumidityValue}
 import wojciech.urbanski.measurements.Measurements
-import wojciech.urbanski.sensordata.{CompoundSensorData, NaNValueFromSensor, NewValueFromSensor, SensorData, SensorId}
+import wojciech.urbanski.sensordata.{CompoundSensorData, NaNValueFromSensor, NewValueFromSensor, NotCountableData, SensorData, SensorId}
 
 case class OverallStatistics(
   processedFiles: Set[String],
@@ -12,12 +14,13 @@ case class OverallStatistics(
   sensorsData: Map[SensorId, CompoundSensorData]
 ) {
 
-  def addNewSensorData(file: String, sensorData: SensorData): OverallStatistics =
+  def addNewSensorData(file: Path, sensorData: SensorData): OverallStatistics =
     sensorData match {
       case NewValueFromSensor(sensorId, humidityValue) =>
-        OverallStatistics(processedFiles + file, processedMeasurements.inc(), failedMeasurements, addNewValueToCompoundStatistics(sensorId, humidityValue))
+        OverallStatistics(processedFiles + file.toString, processedMeasurements.inc(), failedMeasurements, addNewValueToCompoundStatistics(sensorId, humidityValue))
       case NaNValueFromSensor(sensorId) =>
-        OverallStatistics(processedFiles + file, processedMeasurements.inc(), failedMeasurements.inc(), addNewValueToCompoundStatistics(sensorId, NaN))
+        OverallStatistics(processedFiles + file.toString, processedMeasurements.inc(), failedMeasurements.inc(), addNewValueToCompoundStatistics(sensorId, HumidityNaN))
+      case NotCountableData => updateFiles(file)
     }
 
   private def addNewValueToCompoundStatistics(sensorId: SensorId, newValue: HumidityValue) =
@@ -28,7 +31,7 @@ case class OverallStatistics(
         Some(CompoundSensorData.empty.addNewHumidityValue(newValue))
     }
 
-  def updateFiles(file: String): OverallStatistics = this.copy(processedFiles = processedFiles + file)
+  private def updateFiles(file: Path): OverallStatistics = this.copy(processedFiles = processedFiles + file.toString)
 
 }
 
