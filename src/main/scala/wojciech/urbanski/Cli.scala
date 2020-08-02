@@ -22,9 +22,11 @@ object Cli
       for {
         logger <- Slf4jLogger.create[IO]
         files  <- IO(new File(path.toString).listFiles().filter(_.isFile).filter(_.getName.endsWith(".csv")).map(file => Paths.get(file.getPath)).toList)
-        _ <- new ProcessFile[IO]()
-               .readFromFilesAndGatherStatistics(files)
-               .flatMap(r => logger.info("\n" + Show[OverallStatistics].show(r)))
+        _ <- if (files.isEmpty) logger.info("Could not find any .csv files in provided location")
+             else
+               new ProcessFile[IO]()
+                 .readFromFilesAndGatherStatistics(files)
+                 .flatMap(r => logger.info("\n" + Show[OverallStatistics].show(r)))
       } yield ExitCode.Success
     }
   }
